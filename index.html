@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>黑白球大冒險 — 雙人合作版</title>
+<link rel="icon" type="image/png" href="assets/characters/gold-element.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game-root">
+  <canvas id="game-canvas" width="1280" height="720"></canvas>
+
+  <!-- ============ 遊戲中 HUD ============ -->
+  <div id="hud" class="hidden">
+    <div id="hud-p1" class="hud-player">
+      <div class="hud-name"><span class="p-badge p1-badge">P1</span><img id="hud-character-p1" class="hud-ball" alt="P1 角色"></div>
+      <div class="hud-lives" id="hud-p1-lives"></div>
+      <div class="hud-score" id="hud-p1-score">0</div>
+      <div class="hud-power" id="hud-p1-power">一般</div>
+      <div class="hud-invuln" id="hud-p1-invuln"></div>
+      <div class="hud-status" id="hud-p1-status"></div>
+    </div>
+    <div id="hud-center">
+      <div id="hud-level">第 1 關</div>
+      <div id="hud-team-score">團隊分數 0</div>
+      <div id="hud-ghost" class="hidden"></div>
+      <div id="hud-regroup" class="hidden"></div>
+      <div id="hud-wait" class="hidden">等待隊友</div>
+    </div>
+    <div id="hud-p2" class="hud-player">
+      <div class="hud-name"><img id="hud-character-p2" class="hud-ball" alt="P2 角色"><span class="p-badge p2-badge">P2</span></div>
+      <div class="hud-lives" id="hud-p2-lives"></div>
+      <div class="hud-score" id="hud-p2-score">0</div>
+      <div class="hud-power" id="hud-p2-power">一般</div>
+      <div class="hud-invuln" id="hud-p2-invuln"></div>
+      <div class="hud-status" id="hud-p2-status"></div>
+    </div>
+    <div id="arrow-p1" class="edge-arrow hidden"><span>P1</span></div>
+    <div id="arrow-p2" class="edge-arrow hidden"><span>P2</span></div>
+    <div id="hud-banner" class="hidden"></div>
+  </div>
+
+  <!-- ============ 主選單 ============ -->
+  <div id="screen-menu" class="screen">
+    <h1 class="game-title">黑白球大冒險</h1>
+    <p class="game-subtitle">雙人同畫面合作 2D 平台遊戲</p>
+    <div class="menu-buttons">
+      <button id="btn-start">雙人開始</button>
+      <button id="btn-ranked">排位模式</button>
+      <button id="btn-controls">角色與控制設定</button>
+      <button id="btn-levels">關卡選擇</button>
+      <button id="btn-settings">設定</button>
+      <button id="btn-quit">離開遊戲</button>
+    </div>
+  </div>
+
+  <!-- ============ 雙玩家確認畫面 ============ -->
+  <div id="screen-ready" class="screen hidden">
+    <h2 id="ready-title">雙人準備確認</h2>
+    <p id="ready-level-info" class="ready-level-info">簡單｜第 1 關・草原教學</p>
+    <div class="ready-cards">
+      <div class="ready-card" id="ready-card-p1">
+        <div class="character-picker">
+          <button id="character-prev-p1" class="character-nav" aria-label="P1 上一個角色">‹</button>
+          <img id="ready-character-img-p1" class="ready-character-img" alt="P1 選擇的角色">
+          <button id="character-next-p1" class="character-nav" aria-label="P1 下一個角色">›</button>
+        </div>
+        <h3><span class="p-badge p1-badge">P1</span> <span id="ready-character-name-p1">千層蛋糕</span></h3>
+        <div class="ready-device" id="ready-device-p1">鍵盤(左側)</div>
+        <div class="ready-hint" id="ready-hint-p1">按 F 準備</div>
+        <div class="ready-state" id="ready-state-p1">未準備</div>
+      </div>
+      <div class="ready-card" id="ready-card-p2">
+        <div class="character-picker">
+          <button id="character-prev-p2" class="character-nav" aria-label="P2 上一個角色">‹</button>
+          <img id="ready-character-img-p2" class="ready-character-img" alt="P2 選擇的角色">
+          <button id="character-next-p2" class="character-nav" aria-label="P2 下一個角色">›</button>
+        </div>
+        <h3><span class="p-badge p2-badge">P2</span> <span id="ready-character-name-p2">狗狗</span></h3>
+        <div class="ready-device" id="ready-device-p2">鍵盤(右側)</div>
+        <div class="ready-hint" id="ready-hint-p2">按 右Ctrl 準備</div>
+        <div class="ready-state" id="ready-state-p2">未準備</div>
+      </div>
+    </div>
+    <button id="btn-ready-start" disabled>開始遊戲(需雙方準備)</button>
+    <button id="btn-ready-back" class="btn-secondary">返回</button>
+  </div>
+
+  <!-- ============ 排位模式 ============ -->
+  <div id="screen-ranked" class="screen hidden">
+    <h2>排位模式</h2>
+    <p class="ranked-intro">單人與多人積分分開計算，每階 4 顆星、每顆星 500 積分。</p>
+    <div class="rank-mode-grid">
+      <section id="rank-card-solo" class="rank-mode-card" aria-labelledby="rank-mode-title-solo">
+        <div id="rank-emblem-solo" class="rank-emblem"></div>
+        <div class="rank-card-copy">
+          <span class="rank-mode-label">單人排位</span>
+          <h3 id="rank-mode-title-solo"><span id="rank-name-solo">青銅</span> <span id="rank-stars-solo" class="rank-stars"></span></h3>
+          <p id="rank-points-solo" class="rank-points">0 積分</p>
+          <div class="rank-progress" aria-label="單人排位進度"><span id="rank-progress-solo"></span></div>
+          <p id="rank-next-solo" class="rank-next">距離下一顆星還差 500 分</p>
+          <button id="btn-ranked-solo">開始單人排位</button>
+        </div>
+      </section>
+      <section id="rank-card-multi" class="rank-mode-card" aria-labelledby="rank-mode-title-multi">
+        <div id="rank-emblem-multi" class="rank-emblem"></div>
+        <div class="rank-card-copy">
+          <span class="rank-mode-label">多人排位</span>
+          <h3 id="rank-mode-title-multi"><span id="rank-name-multi">青銅</span> <span id="rank-stars-multi" class="rank-stars"></span></h3>
+          <p id="rank-points-multi" class="rank-points">0 積分</p>
+          <div class="rank-progress" aria-label="多人排位進度"><span id="rank-progress-multi"></span></div>
+          <p id="rank-next-multi" class="rank-next">距離下一顆星還差 500 分</p>
+          <button id="btn-ranked-multi">開始多人排位</button>
+        </div>
+      </section>
+    </div>
+    <div id="rank-tier-ladder" class="rank-tier-ladder" aria-label="排位階段"></div>
+    <div class="rank-rules">
+      <strong>多人計分</strong>：生命 50%・擊殺 30%・時間 20%，勝利基礎分最高 150，MVP 額外 +10。<br>
+      <strong>單人計分</strong>：沿用原本的關卡總分，不受 150 分上限限制。
+    </div>
+    <button id="btn-ranked-back" class="btn-secondary">返回</button>
+  </div>
+
+  <!-- ============ 角色與控制設定 ============ -->
+  <div id="screen-controls" class="screen hidden">
+    <h2>角色與控制設定</h2>
+    <div class="controls-grid">
+      <div class="controls-card">
+        <h3><span class="p-badge p1-badge">P1</span> <span id="controls-character-name-p1">千層蛋糕</span></h3>
+        <label>輸入裝置
+          <select id="device-p1">
+            <option value="keyboardL">鍵盤(左側 WASD)</option>
+            <option value="keyboardR">鍵盤(右側 方向鍵)</option>
+            <option value="gamepad0">控制器 1</option>
+            <option value="gamepad1">控制器 2</option>
+          </select>
+        </label>
+        <div class="controls-help" id="controls-help-p1"></div>
+      </div>
+      <div class="controls-card">
+        <h3><span class="p-badge p2-badge">P2</span> <span id="controls-character-name-p2">狗狗</span></h3>
+        <label>輸入裝置
+          <select id="device-p2">
+            <option value="keyboardR">鍵盤(右側 方向鍵)</option>
+            <option value="keyboardL">鍵盤(左側 WASD)</option>
+            <option value="gamepad0">控制器 1</option>
+            <option value="gamepad1">控制器 2</option>
+          </select>
+        </label>
+        <div class="controls-help" id="controls-help-p2"></div>
+      </div>
+    </div>
+    <p class="note" id="gamepad-status">目前未偵測到控制器。連接後即可在上方選擇。</p>
+    <p class="note">共用鍵:Esc 暫停|R 重新開始關卡|P1 互動鍵 E|P2 互動鍵 右Shift</p>
+    <button id="btn-controls-back" class="btn-secondary">返回</button>
+  </div>
+
+  <!-- ============ 關卡選擇 ============ -->
+  <div id="screen-levels" class="screen hidden">
+    <h2 id="levels-title">關卡選擇</h2>
+    <div id="difficulty-grid" class="difficulty-grid" aria-label="選擇難度"></div>
+    <p id="level-mode-summary" class="level-mode-summary"></p>
+    <div id="level-grid" class="level-grid"></div>
+    <button id="btn-levels-back" class="btn-secondary">返回</button>
+  </div>
+
+  <!-- ============ 設定 ============ -->
+  <div id="screen-settings" class="screen hidden">
+    <h2>設定</h2>
+    <div class="settings-list">
+      <label>生命規則
+        <select id="setting-lives-mode">
+          <option value="reset">每關恢復五條命</option>
+          <option value="carry">延續到下一關</option>
+        </select>
+      </label>
+      <label>音效
+        <select id="setting-sound">
+          <option value="on">開啟</option>
+          <option value="off">關閉</option>
+        </select>
+      </label>
+    </div>
+    <button id="btn-settings-back" class="btn-secondary">返回</button>
+  </div>
+
+  <!-- ============ 暫停 ============ -->
+  <div id="screen-pause" class="screen overlay hidden">
+    <h2>暫停</h2>
+    <div class="menu-buttons">
+      <button id="btn-resume">繼續遊戲</button>
+      <button id="btn-pause-restart">重新開始關卡</button>
+      <button id="btn-pause-menu">返回主選單</button>
+    </div>
+  </div>
+
+  <!-- ============ 關卡完成 ============ -->
+  <div id="screen-complete" class="screen overlay hidden">
+    <h2>關卡完成!</h2>
+    <div id="complete-stats" class="stats-table"></div>
+    <div class="menu-buttons">
+      <button id="btn-next-level">下一關</button>
+      <button id="btn-complete-menu" class="btn-secondary">返回主選單</button>
+    </div>
+  </div>
+
+  <!-- ============ 全破 ============ -->
+  <div id="screen-allclear" class="screen overlay hidden">
+    <h2 id="allclear-title">恭喜全破十關!</h2>
+    <div id="allclear-stats" class="stats-table"></div>
+    <div class="menu-buttons">
+      <button id="btn-allclear-menu">返回主選單</button>
+    </div>
+  </div>
+
+  <!-- ============ Game Over ============ -->
+  <div id="screen-gameover" class="screen overlay hidden">
+    <h2>Game Over</h2>
+    <div id="gameover-stats" class="stats-table"></div>
+    <div class="menu-buttons">
+      <button id="btn-retry">重新挑戰關卡</button>
+      <button id="btn-gameover-menu" class="btn-secondary">返回主選單</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/characters.js"></script>
+<script src="js/input.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/level.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/ghost.js"></script>
+<script src="js/player.js"></script>
+<script src="js/ranked.js"></script>
+<script src="js/systems.js"></script>
+<script src="js/endless.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+<script type="module" src="js/firebase-init.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Local Firebase deployment cache and project selection
+.firebase/
+.firebaserc
+
+# Local editor and agent settings
+.claude/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Operating system files
+.DS_Store
+Thumbs.db
